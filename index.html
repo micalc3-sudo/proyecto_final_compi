@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Lenguaje de Programación</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="brand">
+        <div class="brand-logo">λ</div>
+        <div>
+            <h1>Análisis de Lenguaje de Programación</h1>
+            <p>Python simplificado · Analizador Léxico · Analizador Sintáctico LL(1) · AFD · Conway</p>
+        </div>
+    </div>
+
+    <div class="header-controls">
+        <div class="control-group">
+            <span>Lenguaje:</span>
+            <button class="chip active">Python simplificado</button>
+        </div>
+
+        <div class="control-group">
+            <span>Fase:</span>
+            <button class="phase-btn active" data-phase="complete">Completo</button>
+            <button class="phase-btn" data-phase="lexical">Solo Léxico</button>
+            <button class="phase-btn" data-phase="syntax">Solo Sintáctico</button>
+        </div>
+    </div>
+</header>
+
+<main class="layout">
+
+    <section class="intro panel">
+        <h2>Proyecto: Analizador Léxico y Sintáctico</h2>
+        <p>
+            Esta aplicación web simula procesos de un compilador para un subconjunto de Python.
+            Incluye categorías léxicas, expresiones regulares, AFD, máquina discriminadora,
+            gramática BNF, FIRST, FOLLOW, tabla LL(1), análisis predictivo, árbol sintáctico
+            y diagramas de Conway.
+        </p>
+    </section>
+
+    <section class="workspace">
+        <div class="panel code-panel">
+            <div class="panel-title cyan">Entrada de código fuente</div>
+
+            <textarea id="sourceCode" spellcheck="false">x = 10
+y = 20
+resultado = x + y
+
+if resultado > 25:
+    print("Resultado mayor")</textarea>
+
+            <div class="button-row">
+                <button id="btnAnalyze" class="primary">▶ Ejecutar análisis</button>
+                <button id="btnExample">Ejemplo válido</button>
+                <button id="btnErrorExample">Ejemplo con errores</button>
+                <button id="btnExpression">Expresión</button>
+                <button id="btnReport">Descargar reporte</button>
+                <button id="btnClear" class="danger">Limpiar</button>
+            </div>
+        </div>
+
+        <aside class="side-column">
+            <div class="panel">
+                <div class="panel-title blue">Métricas</div>
+                <div class="metric"><span>Líneas analizadas</span><strong id="metricLines">0</strong></div>
+                <div class="metric"><span>Tokens generados</span><strong id="metricTokens">0</strong></div>
+                <div class="metric"><span>Identificadores</span><strong id="metricSymbols">0</strong></div>
+                <div class="metric"><span>Errores</span><strong id="metricErrors">0</strong></div>
+                <div class="status-grid">
+                    <span id="lexicalStatus" class="status pending">Léxico pendiente</span>
+                    <span id="syntaxStatus" class="status pending">Sintáctico pendiente</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title orange">Traza del proceso</div>
+                <pre id="processTrace" class="trace-box">Presione “Ejecutar análisis”.</pre>
+            </div>
+        </aside>
+    </section>
+
+    <section class="panel">
+        <div class="panel-title pink">Control de errores</div>
+        <pre id="errorConsole" class="error-console">Sin análisis ejecutado.</pre>
+    </section>
+
+    <section class="phase-section lexical-section">
+        <h2>FASE 1 — Analizador Léxico</h2>
+
+        <div class="panel">
+            <div class="panel-title purple">Categorías léxicas y expresiones regulares</div>
+            <div id="regexGrid" class="regex-grid"></div>
+        </div>
+
+        <div class="grid-2">
+            <div class="panel">
+                <div class="panel-title green">Listado de tokens generados</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Línea</th>
+                                <th>Columna</th>
+                                <th>Lexema</th>
+                                <th>Categoría</th>
+                                <th>Código</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tokensTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title orange">Tabla de símbolos / identificadores</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Identificador</th>
+                                <th>Tipo</th>
+                                <th>Categoría</th>
+                                <th>Línea</th>
+                                <th>Asignado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="symbolsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title blue">Funciones del preprocesador</div>
+            <div class="process-grid">
+                <div class="process-card"><b>1. Leer código</b><span>Recibe texto desde el editor.</span></div>
+                <div class="process-card"><b>2. Separar líneas</b><span>Cuenta y procesa línea por línea.</span></div>
+                <div class="process-card"><b>3. Eliminar comentarios</b><span>Ignora contenido desde #.</span></div>
+                <div class="process-card"><b>4. Formar lexemas</b><span>Reconoce patrones válidos.</span></div>
+                <div class="process-card"><b>5. Generar tokens</b><span>Clasifica cada lexema.</span></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title cyan">AFD y Máquina Discriminadora Determinista</div>
+
+            <div class="afd-simulator">
+                <label>Simulador AFD:</label>
+                <input id="afdInput" placeholder='Ejemplo: variable1, 125, 12.5, "hola", if'>
+                <button id="btnTestAFD" class="primary">Probar</button>
+            </div>
+
+            <pre id="afdResult" class="trace-box">Ingrese un lexema para simular el recorrido del autómata.</pre>
+
+            <div id="afdContainer" class="visual-grid"></div>
+
+            <div class="panel subpanel">
+                <div class="panel-title blue">Máquina discriminadora determinista</div>
+                <svg id="mddSvg" class="diagram-svg" viewBox="0 0 1200 430"></svg>
+            </div>
+        </div>
+    </section>
+
+    <section class="phase-section syntax-section">
+        <h2>FASE 2 — Analizador Sintáctico</h2>
+
+        <div class="grid-2">
+            <div class="panel">
+                <div class="panel-title purple">Gramática incontextual / BNF</div>
+                <div id="bnfList" class="bnf-list"></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title orange">Conjuntos FIRST y FOLLOW</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No terminal</th>
+                                <th>FIRST</th>
+                                <th>FOLLOW</th>
+                            </tr>
+                        </thead>
+                        <tbody id="firstFollowTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title green">Tabla LL(1) construida con FIRST y FOLLOW</div>
+            <div class="table-wrap wide">
+                <table id="ll1Matrix"></table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title orange">Análisis sintáctico LL(1) paso a paso</div>
+            <div class="table-wrap wide">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Paso</th>
+                            <th>Pila</th>
+                            <th>Entrada</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ll1Steps"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title blue">Árbol de análisis sintáctico generado</div>
+            <div id="syntaxTreeCanvas" class="tree-canvas">
+                Presione “Ejecutar análisis” para generar el árbol.
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title cyan">Diagramas de Conway por regla BNF</div>
+            <div id="conwayButtons" class="conway-buttons"></div>
+            <svg id="conwaySvg" class="diagram-svg conway-svg" viewBox="0 0 1300 420"></svg>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title green">Generador personalizado de diagramas de Conway</div>
+            <div class="custom-grid">
+                <div>
+                    <label>Ingrese reglas BNF:</label>
+                    <textarea id="customBnf">Programa -> Sentencia Programa | ε
+Asignacion -> IDENTIFICADOR = Expresion
+Impresion -> print ( Expresion )
+Termino -> IDENTIFICADOR | NUMERO | CADENA</textarea>
+                    <button id="btnCustomConway" class="primary">Dibujar diagramas</button>
+                </div>
+                <div id="customConwayOutput" class="custom-output"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title pink">Shunting-yard — RPN y evaluación de expresiones</div>
+            <div class="grid-2">
+                <div>
+                    <label>Expresión infija:</label>
+                    <input id="expressionInput" value="10 + 20 * 3">
+                    <button id="btnEvaluateExpression" class="primary">Convertir / evaluar</button>
+                    <h3>Notación postfija</h3>
+                    <pre id="rpnOutput" class="trace-box">Pendiente.</pre>
+                    <h3>Resultado</h3>
+                    <pre id="expressionResult" class="trace-box">Pendiente.</pre>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Token</th>
+                                <th>Pila</th>
+                                <th>Salida</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shuntingSteps"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<script src="js/grammar.js"></script>
+<script src="js/lexer.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/ll1.js"></script>
+<script src="js/afd.js"></script>
+<script src="js/conway.js"></script>
+<script src="js/tree.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/visualizer.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
